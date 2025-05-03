@@ -2,15 +2,24 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
+# Установка системных зависимостей
 RUN apt-get update && apt-get install -y \
     gcc \
     python3-dev \
-    netcat-openbsd \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Копируем только requirements.txt сначала для кэширования
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
+# Установка Python-зависимостей с четким указанием версий
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir \
+    python-telegram-bot==20.3 \
+    apscheduler==3.10.1 \
+    -r requirements.txt
+
+# Копируем весь проект
 COPY . .
 
 ENV PYTHONPATH=/app

@@ -11,10 +11,11 @@ logger = logging.getLogger(__name__)
 
 class TelegramNotifier:
     def __init__(self):
-        self.token = os.getenv('7119840176:AAFGBwRj3_CUueg9g6MnqpWkJvedTfabPl8')
-        self.chat_id = os.getenv('962583970')
+        self.token = os.getenv('TELEGRAM_BOT_TOKEN')  # Название переменной из .env
+        self.chat_id = os.getenv('TELEGRAM_CHAT_ID')  # Название переменной из .env
         self.bot = Bot(token=self.token) if self.token else None
         self.scheduler = AsyncIOScheduler()
+        self.scheduler.start()
 
     async def send_notification(self, message: str):
         if not self.bot:
