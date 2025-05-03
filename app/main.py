@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+from app.models.base import SessionLocal
+from app.telegram.bot import telegram_notifier  # Правильный путь
 
 # Импорты для больниц
 from app.services import hospital as hospital_service
@@ -47,6 +49,10 @@ app = FastAPI(
         },
     ]
 )
+
+@app.on_event("startup")
+async def startup_event():
+    telegram_notifier.start()
 
 def get_db():
     db = SessionLocal()
