@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 from app.models.appointment import Appointment
 from app.schemas.appointment import AppointmentCreate
+from app.telegram.bot import telegram_notifier
 
 load_dotenv()
 
@@ -25,6 +26,22 @@ def create_appointment(db: Session, appointment: AppointmentCreate):
     db.refresh(db_appointment)
     
     redis_client.set(slot_key, "booked", ex=3600)
+    
+    # Получаем дополнительную информацию о враче и больнице
+    from app.models.doctor import Doctor
+    from app.models.hospital import Hospital
+    doctor = db.query(Doctor).filter(Doctor.id == appointment.doctor_id).first()
+    hospital = db.query(Hospital).filter(Hospital.id == doctor.hospital_id).first() if doctor else None
+    
+    # Отправляем уведомление в Telegram
+    if doctor and hospital:
+        appointment_info = {
+            'hospital_name': hospital.name,
+            'doctor_name': doctor.name,
+            'appointment_date': appointment.appointment_date.strftime("%Y-%m-%d %H:%M:%S")
+        }
+        telegram_notifier.schedule_reminder(appointment_info)
+    
     return db_appointment
 
 def get_appointment(db: Session, appointment_id: int):
