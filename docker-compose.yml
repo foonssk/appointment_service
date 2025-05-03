@@ -39,6 +39,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - TELEGRAM_BOT_TOKEN=7119840176:AAFGBwRj3_CUueg9g6MnqpWkJvedTfabPl8
     volumes:
       - .:/app
     ports:
@@ -46,6 +47,29 @@ services:
     command: >
       sh -c "alembic upgrade head &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  bot-api:
+    build: .
+    container_name: bot-api
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=appointment_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - TELEGRAM_BOT_TOKEN=7119840176:AAFGBwRj3_CUueg9g6MnqpWkJvedTfabPl8
+    volumes:
+      - .:/app
+    ports:
+      - "8001:8001"
+    command: uvicorn bot.bot_api:app --host 0.0.0.0 --port 8001 --reload
 
 volumes:
   postgres_data:
